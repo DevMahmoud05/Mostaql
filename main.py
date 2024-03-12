@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 import requests
 import telegram
 from bs4 import BeautifulSoup
-from keep_alive import keep_alive
+# from keep_alive import keep_alive
 
 load_dotenv()
 
@@ -16,7 +16,7 @@ BOT_TOKEN = os.getenv('BOT_TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
 
 
-# app = Flask(__name__)
+app = Flask(__name__)
 bot = telegram.Bot(token=BOT_TOKEN)
 
 # Function to load previously sent jobs
@@ -149,8 +149,8 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-    keep_alive()
+    app.run(debug=True)
 
-# @app.route('/')
-# def home():
-    # return jsonify(message='Mostaql Bot Server')
+@app.route('/')
+def home():
+    return jsonify(message='Mostaql Bot Server')

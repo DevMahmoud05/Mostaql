@@ -149,10 +149,10 @@ async def main():
         print(f"Error occurred: {e}")
 
 
+keep_alive()
 if __name__ == "__main__":
     asyncio.run(main())
     app.run(debug=True)
-    keep_alive()
 
 
 @app.route('/')

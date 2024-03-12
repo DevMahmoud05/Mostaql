@@ -1,4 +1,5 @@
 from flask import Flask, jsonify
+from flask_cors import CORS
 import asyncio
 import os
 import pickle
@@ -8,7 +9,7 @@ from dotenv import load_dotenv
 import requests
 import telegram
 from bs4 import BeautifulSoup
-# from keep_alive import keep_alive
+from keep_alive import keep_alive
 
 load_dotenv()
 
@@ -17,6 +18,7 @@ CHAT_ID = os.getenv('CHAT_ID')
 
 
 app = Flask(__name__)
+CORS(app)
 bot = telegram.Bot(token=BOT_TOKEN)
 
 # Function to load previously sent jobs
@@ -150,6 +152,7 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
     app.run(debug=True)
+    keep_alive()
 
 
 @app.route('/')

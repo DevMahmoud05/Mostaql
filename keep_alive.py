@@ -1,5 +1,6 @@
 from flask import Flask
 from threading import Thread
+import logging
 
 
 app = Flask(__name__)
@@ -11,7 +12,10 @@ def index():
 
 
 def run():
-    app.run(host='0.0.0.0', port=8080)
+    try:
+        app.run(host='0.0.0.0', port=8080)
+    except Exception as e:
+        logging.error(f"An error occurred: {str(e)}")
 
 
 def keep_alive():

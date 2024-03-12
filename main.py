@@ -1,4 +1,4 @@
-# from flask import Flask, jsonify
+from flask import Flask, jsonify
 import asyncio
 import os
 import pickle
@@ -150,6 +150,7 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
     app.run(debug=True)
+
 
 @app.route('/')
 def home():

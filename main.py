@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 import requests
 import telegram
 from bs4 import BeautifulSoup
-from keep_alive import keep_alive
+
 
 load_dotenv()
 
@@ -153,4 +153,7 @@ if __name__ == "__main__":
     asyncio.run(main())
     app.run(debug=True)
 
-keep_alive()
+
+@app.route('/')
+def home():
+    return jsonify(msg='Mostaql Bot Server')

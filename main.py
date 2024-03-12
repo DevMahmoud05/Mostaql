@@ -10,7 +10,6 @@ import telegram
 from bs4 import BeautifulSoup
 from keep_alive import keep_alive
 
-keep_alive()
 load_dotenv()
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
@@ -137,6 +136,7 @@ async def scrape_and_send_jobs():
                 print(f"Error sending message: {e}")
         save_sent_jobs(sent_jobs)
 
+
 async def main():
     try:
         while True:
@@ -149,7 +149,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-    app.run(debug=True)
+    keep_alive()
 
 # @app.route('/')
 # def home():

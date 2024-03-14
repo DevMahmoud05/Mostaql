@@ -10,7 +10,9 @@ import requests
 import telegram
 from bs4 import BeautifulSoup
 
+from keep_alive import keep_alive
 
+keep_alive()
 load_dotenv()
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
@@ -151,19 +153,9 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-    app.run(debug=True)
+    app.run(debug=True)  # Add this line to run the Flask app
 
-
-
-def run():
-    app.run(host='0.0.0.0', port=8080)
-
-
-def keep_alive():
-    t = Thread(target=run)
-    t.start()
-    
 
 @app.route('/')
 def home():
-    return jsonify(msg='Mostaql Bot Server')
+    return jsonify(message='Mostaql Bot Server')

@@ -20,7 +20,7 @@ CHAT_ID = os.getenv('CHAT_ID')
 
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 bot = telegram.Bot(token=BOT_TOKEN)
 
 # Function to load previously sent jobs

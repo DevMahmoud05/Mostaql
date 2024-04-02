@@ -122,9 +122,9 @@ async def scrape_and_send_jobs():
 
     for job in jobs:
 
-        if job['datetime'] not in sent_jobs:
+        if job['link'] not in sent_jobs:
             new_jobs.append(job)
-            sent_jobs.add(job['datetime'])
+            sent_jobs.add(job['link'])
 
     if new_jobs:
 
@@ -134,7 +134,7 @@ async def scrape_and_send_jobs():
                 await bot.send_message(chat_id=CHAT_ID,
                                        text=message, parse_mode='HTML',
                                        disable_web_page_preview=True)
-                sent_jobs.add(job['datetime'])
+                sent_jobs.add(job['link'])
                 await asyncio.sleep(.5)
             except Exception as e:
                 print(f"Error sending message: {e}")

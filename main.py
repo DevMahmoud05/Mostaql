@@ -17,7 +17,8 @@ load_dotenv()
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
-
+PRIMARY_URL = "https://mostaql.com/projects?category=development&budget_max=10000&sort=latest"
+PROJECT_URL = "https://mostaql.com/project/"
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})

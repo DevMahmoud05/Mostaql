@@ -9,8 +9,8 @@ import requests
 import telegram
 from bs4 import BeautifulSoup
 
-CHAT_ID = '-'
-BOT_TOKEN =""
+CHAT_ID = '-1002020059001'
+BOT_TOKEN = "6456854514:AAGdDKlGukbxip1vHS2SfUKnKlKlJ_QzD5E"
 
 PRIMARY_URL = "https://mostaql.com/projects?category=development&budget_max=10000&sort=latest"
 PROJECT_URL = "https://mostaql.com/project/"
@@ -35,14 +35,14 @@ def save_sent_jobs(sent_jobs):
         pickle.dump(sent_jobs, f)
 
 def generate_message(job):
-    title = job['title']
-    description = job['description']
-    budget = job["project_budget_value"]
+    title = job.get('title') or 'No Title'
+    description = job.get('description') or 'No Description'
+    budget = job.get("project_budget_value") or 'No Budget'
     msg_link = f'{PROJECT_URL}{job["project_id"]}'
-    deadline = re.sub(r'\s+', ' ', job["project_deadline_value"])
-    date = re.sub(r'\s+', ' ', job["project_date_value"])
+    deadline = re.sub(r'\s+', ' ', job.get("project_deadline_value") or 'No Deadline')
+    date = re.sub(r'\s+', ' ', job.get("project_date_value") or 'No Date')
 
-    html_message = f'<b><a href="{msg_link}">💡{title}</a></b>\n<b>- {date}</b>\n- <b>مدة التنفيذ  {deadline}</b>\n- <b>الميزانية {budget}</b>\n{description}\n'
+    html_message = f'<b><a href="{msg_link}">{title}</a></b>\n<b>- {date}</b>\n- <b>مدة التنفيذ  {deadline}</b>\n- <b>الميزانية {budget}</b>\n{description}\n'
     return html_message
 
 def get_headers():
@@ -62,7 +62,6 @@ async def scrape_and_send_jobs():
     headers = get_headers()
     response = requests.get(PRIMARY_URL, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
-    print("soup:", soup)
 
     jobs = []
     for project_row in soup.select(".project-row"):
@@ -78,17 +77,29 @@ async def scrape_and_send_jobs():
             # Title
             title_element = project_soup.select_one("h1[data-page-title]")
             title = title_element.get_text(strip=True) if title_element else None
+            if title is None:
+                print(f"Title not found for project ID: {project_id}")
 
             # Description
             project_desc = project_soup.select_one(".carda__content")
             description = project_desc.get_text() if project_desc else None
+            if description is None:
+                print(f"Description not found for project ID: {project_id}")
 
             # Project Details
             table_meta = project_soup.select(".table-meta tr")
 
             project_date_value = table_meta[1].select('td')[1].get_text() if len(table_meta) > 1 else None
+            if project_date_value is None:
+                print(f"Project date not found for project ID: {project_id}")
+
             project_budget_value = table_meta[2].select('td')[1].get_text() if len(table_meta) > 2 else None
+            if project_budget_value is None:
+                print(f"Project budget not found for project ID: {project_id}")
+
             project_deadline_value = table_meta[3].select('td')[1].get_text() if len(table_meta) > 3 else None
+            if project_deadline_value is None:
+                print(f"Project deadline not found for project ID: {project_id}")
 
             jobs.append({
                 "project_id": project_id,
@@ -129,7 +140,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-    app.run(debug=True)  # Add this line to run the Flask app
+    app.run(debug=True)
 
 @app.route('/')
 def home():

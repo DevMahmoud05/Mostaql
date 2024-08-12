@@ -35,15 +35,20 @@ def save_sent_jobs(sent_jobs):
         pickle.dump(sent_jobs, f)
 
 def generate_message(job):
-    title = job.get('title') or 'No Title'
-    description = job.get('description') or 'No Description'
-    budget = job.get("project_budget_value") or 'No Budget'
+    title = job.get("title") or "No Title"
+    description = job.get("description") or "No Description"
+    budget = job.get("project_budget_value") or "No Budget"
     msg_link = f'{PROJECT_URL}{job["project_id"]}'
-    deadline = re.sub(r'\s+', ' ', job.get("project_deadline_value") or 'No Deadline')
-    date = re.sub(r'\s+', ' ', job.get("project_date_value") or 'No Date')
+    deadline = re.sub(r"\s+", " ", job.get("project_deadline_value") or "No Deadline")
+    date = re.sub(r"\s+", " ", job.get("project_date_value") or "No Date")
+    # Handling the files list
+    files = job.get("files") or []
+    files_text = "\n".join(files)
+    files_section = f"{files_text}" if files else ""
 
-    html_message = f'<b><a href="{msg_link}">{title}</a></b>\n<b>- {date}</b>\n- <b>مدة التنفيذ  {deadline}</b>\n- <b>الميزانية {budget}</b>\n{description}\n'
+    html_message = f'<b><a href="{msg_link}">{title}</a></b>\n<b>- {date}</b>\n- <b>مدة التنفيذ  {deadline}</b>\n- <b>الميزانية {budget}</b>\n{description}\n{files_section}'
     return html_message
+
 
 def get_headers():
     return {
@@ -55,8 +60,9 @@ def get_headers():
         "Cache-Control": "max-age=0",
         "Referer": "https://mostaql.com/",
         "Sec-Ch-Ua-Platform": "Windows",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
     }
+
 
 async def scrape_and_send_jobs():
     headers = get_headers()
@@ -67,8 +73,13 @@ async def scrape_and_send_jobs():
     for project_row in soup.select(".project-row"):
         original_link = project_row.select_one(".mrg--bt-reset a")
         if original_link:
-            project_id = original_link.get('href')[28:34]
+            project_id = original_link.get("href")[28:34]
             print("project_id:", project_id)
+
+            # Check if the project ID is already in the sent jobs
+            if project_id in sent_jobs:
+                print(f"Project ID {project_id} already processed.")
+                continue  # Skip this job if it's already been processed
 
             URL = PROJECT_URL + project_id
             project_res = requests.get(URL, headers=headers)
@@ -86,62 +97,89 @@ async def scrape_and_send_jobs():
             if description is None:
                 print(f"Description not found for project ID: {project_id}")
 
+            # Project Files
+            files = []
+            files_meta = project_soup.select("#project-files-panel .list-group-item")
+            for item in files_meta:
+                list_meta_items = item.select("ul.list-meta li")
+                if len(list_meta_items) > 1:
+                    a_tag = list_meta_items[1].find("a")
+                    if a_tag:
+                        files.append(a_tag.text.strip())
+
             # Project Details
             table_meta = project_soup.select(".table-meta tr")
-
-            project_date_value = table_meta[1].select('td')[1].get_text() if len(table_meta) > 1 else None
+            project_date_value = (
+                table_meta[1].select("td")[1].get_text()
+                if len(table_meta) > 1
+                else None
+            )
             if project_date_value is None:
                 print(f"Project date not found for project ID: {project_id}")
 
-            project_budget_value = table_meta[2].select('td')[1].get_text() if len(table_meta) > 2 else None
+            project_budget_value = (
+                table_meta[2].select("td")[1].get_text()
+                if len(table_meta) > 2
+                else None
+            )
             if project_budget_value is None:
                 print(f"Project budget not found for project ID: {project_id}")
 
-            project_deadline_value = table_meta[3].select('td')[1].get_text() if len(table_meta) > 3 else None
+            project_deadline_value = (
+                table_meta[3].select("td")[1].get_text()
+                if len(table_meta) > 3
+                else None
+            )
             if project_deadline_value is None:
                 print(f"Project deadline not found for project ID: {project_id}")
 
-            jobs.append({
-                "project_id": project_id,
-                "title": title,
-                "description": description,
-                "project_date_value": project_date_value,
-                "project_budget_value": project_budget_value,
-                "project_deadline_value": project_deadline_value,
-            })
+            jobs.append(
+                {
+                    "project_id": project_id,
+                    "title": title,
+                    "description": description,
+                    "project_date_value": project_date_value,
+                    "project_budget_value": project_budget_value,
+                    "project_deadline_value": project_deadline_value,
+                    "files": files,
+                }
+            )
         else:
             print("Could not find original link for project row")
 
     new_jobs = []
     for job in jobs:
-        if job['project_id'] not in sent_jobs:
+        if job["project_id"] not in sent_jobs:
             new_jobs.append(job)
-            sent_jobs.add(job['project_id'])
+            sent_jobs.add(job["project_id"])
 
     if new_jobs:
         for job in new_jobs:
             message = generate_message(job)
             try:
-                await bot.send_message(chat_id=CHAT_ID, text=message, parse_mode='HTML', disable_web_page_preview=True)
-                sent_jobs.add(job['project_id'])
-                await asyncio.sleep(.5)
+                await bot.send_message(
+                    chat_id=CHAT_ID,
+                    text=message,
+                    parse_mode="HTML",
+                    disable_web_page_preview=True,
+                )
+                sent_jobs.add(job["project_id"])
+                await asyncio.sleep(0.5)
             except Exception as e:
                 print(f"Error sending message: {e}")
         save_sent_jobs(sent_jobs)
+
 
 async def main():
     try:
         while True:
             await scrape_and_send_jobs()
             await asyncio.sleep(90)
-            print('New Check')
+            print("New Check")
     except Exception as e:
         print(f"Error occurred: {e}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
     app.run(debug=True)
-
-@app.route('/')
-def home():
-    return jsonify(message='Mostaql Bot Server')

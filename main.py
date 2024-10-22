@@ -8,9 +8,9 @@ from dotenv import load_dotenv
 import requests
 import telegram
 from bs4 import BeautifulSoup
-# from keep_alive import keep_alive
+from keep_alive import keep_alive
 
-# keep_alive()
+keep_alive()
 
 CHAT_ID = '-1002020059001'
 # CHAT_ID = '995944815'

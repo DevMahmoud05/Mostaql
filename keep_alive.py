@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return {"msg": "Mostaql Channel running...."}
+    return {"msg": "Mostaql AWS...."}
 
 
 def run():
